@@ -11,8 +11,8 @@
 	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/dsn.jar"/>
 	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/gimap.jar"/>
 	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/imap.jar"/>
-	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/mailapi.jar"/>
 	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/pop3.jar"/>
 	<classpathentry kind="lib" path="C:/Users/User/Desktop/.jar/smtp.jar"/>
+	<classpathentry kind="lib" path="C:/Users/User/Downloads/javax.mail.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

